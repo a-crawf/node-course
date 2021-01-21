@@ -19,12 +19,4 @@ MongoClient.connect(connectionURL, { useNewUrlParser: true }, (error, client) =>
 
     const db = client.db(databaseName)
 
-    db.collection('users').deleteOne({
-        _id: new ObjectID("60051e3e95c3113ad4527ad4")
-    }).then((result) => {
-        console.log(result)
-    }).catch((error) => {
-        console.log(error)
-    })
-
 })
