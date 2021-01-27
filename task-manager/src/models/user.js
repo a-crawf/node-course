@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const Task = require('./task')
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -49,6 +50,26 @@ const userSchema = new mongoose.Schema({
     }]
 })
 
+//Virtual property - not actually stored in DB but allows us to access it as if it was
+userSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'owner'
+})
+
+//Using "toJSON" exactly as it is will make this the default response for this model.
+//This is because response.send() is calling JSON.stringify behind the scenes. toJSON is called
+//whenever an object gets stringified.
+userSchema.methods.toJSON = function () {
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.password
+    delete userObject.tokens
+
+    return userObject
+}
+
 //methods functions are accessible on an instance of the model (used where we are dealing with a single instance)
 userSchema.methods.generateAuthToken = async function () {
     const user = this
@@ -84,6 +105,16 @@ userSchema.pre('save', async function (next) {
     if (user.isModified('password')) {
         user.password = await bcrypt.hash(user.password, 8)
     }
+
+    next()
+})
+
+
+// Delete user tasks when user is removed
+userSchema.pre('remove', async function (next) {
+    const user = this
+
+    await Task.deleteMany({ owner: user._id })
 
     next()
 })
