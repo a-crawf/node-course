@@ -48,6 +48,9 @@ const userSchema = new mongoose.Schema({
             required: true
         }
     }]
+}, {
+    //Adds createdAt and updatedAt fields by default
+    timestamps: true
 })
 
 //Virtual property - not actually stored in DB but allows us to access it as if it was
