@@ -80,7 +80,7 @@ userSchema.methods.toJSON = function () {
 //methods functions are accessible on an instance of the model (used where we are dealing with a single instance)
 userSchema.methods.generateAuthToken = async function () {
     const user = this
-    const token = jwt.sign({ _id: user._id.toString() }, process.env.TOKEN_SECRET)
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET)
 
     user.tokens = user.tokens.concat({ token })
     await user.save()
