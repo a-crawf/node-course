@@ -18,7 +18,18 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         validate(value) {
             if (!validator.isEmail(value)) {
-                throw new Error('Email is invalid!')
+                throw new Error('Email is invalid')
+            }
+        }
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 7,
+        trim: true,
+        validate(value) {
+            if (value.toLowerCase().includes('password')) {
+                throw new Error('Password cannot contain "password"')
             }
         }
     },
@@ -27,18 +38,7 @@ const userSchema = new mongoose.Schema({
         default: 0,
         validate(value) {
             if (value < 0) {
-                throw new Error('Age must be a positive number')
-            }
-        }
-    },
-    password: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 6,
-        validate(value) {
-            if (value.toLowerCase().includes('password')) {
-                throw new Error('Password must not contain "password"!')
+                throw new Error('Age must be a postive number')
             }
         }
     },
@@ -47,7 +47,10 @@ const userSchema = new mongoose.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    avatar: {
+        type: Buffer
+    }
 }, {
     //Adds createdAt and updatedAt fields by default
     timestamps: true
@@ -69,6 +72,7 @@ userSchema.methods.toJSON = function () {
 
     delete userObject.password
     delete userObject.tokens
+    delete userObject.avatar
 
     return userObject
 }
@@ -76,7 +80,7 @@ userSchema.methods.toJSON = function () {
 //methods functions are accessible on an instance of the model (used where we are dealing with a single instance)
 userSchema.methods.generateAuthToken = async function () {
     const user = this
-    const token = jwt.sign({ _id: user._id.toString() }, 'thisismynewcourse')
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.TOKEN_SECRET)
 
     user.tokens = user.tokens.concat({ token })
     await user.save()
